@@ -85,7 +85,7 @@ end
 
 puts report
 
-CSV.open('./output.csv', 'w') do |csv|
+CSV.open('report/output.csv', 'w') do |csv|
   header = []
   header << ''
   report.keys.each do |report_year|
@@ -110,6 +110,6 @@ CSV.open('./output.csv', 'w') do |csv|
   csv << printable_values
 end
 
-CSV.open('./unusable.csv', 'w') do |csv|
+CSV.open('report/unusable.csv', 'w') do |csv|
   csv << ['Unusable dates', unusable_dates['unusable_dates']]
 end
