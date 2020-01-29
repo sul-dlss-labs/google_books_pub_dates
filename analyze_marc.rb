@@ -111,5 +111,5 @@ CSV.open('report/output.csv', 'w') do |csv|
 end
 
 CSV.open('report/unusable.csv', 'w') do |csv|
-  csv << ['Unusable dates', unusable_dates['unusable_dates']]
+  csv << ['Dates not parsed', unusable_dates['unusable_dates']]
 end
