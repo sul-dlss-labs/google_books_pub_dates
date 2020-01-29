@@ -108,7 +108,8 @@ CSV.open('./output.csv', 'w') do |csv|
   end
 
   csv << printable_values
+end
 
-  csv << []
+CSV.open('./unusable.csv', 'w') do |csv|
   csv << ['Unusable dates', unusable_dates['unusable_dates']]
 end
