@@ -3,7 +3,7 @@
 bundle install
 ```
 ## Run the Script
-E.g. using the sample record set:
+E.g. using the full record set:
 ```apple js
 ruby analyze_marc.rb marc/grin_all_barcodes.mrc
 ```
@@ -17,6 +17,8 @@ as 'Unusable dates'.
 Open the `output.csv` file using Excel or similar spreadsheet editor
 
 Optionally create a histogram using the spreadsheet tool's built-in graphing function.
+
+Similarly, open the `unused.csv` to view the number of records with dates not parsed by this report script.
 
 ## How the MARC Data Was Collected
 On the Symphony server this is the command used to dump the catalog records:
