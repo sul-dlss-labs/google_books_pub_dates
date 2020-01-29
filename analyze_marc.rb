@@ -33,11 +33,15 @@ end
 def embargo_year(pub_date)
   year = pub_date.to_i
 
+  if year < 1000
+    return 0
+  end
+
+  if year.between?(1000,1925)
+    return 2020
+  end
+
   case year
-  when year < 1000
-    0
-  when (1000..1925) == year
-    2020
   when 1926
     2021
   when 1927
@@ -70,8 +74,6 @@ reader.each do |record|
   number_of_pages = /\d+/.match(pages_or_leaves)
 
   year = embargo_year(pub_date(record))
-
-  # puts "#{pub_date(record)} #{pub_record} #{pages_or_leaves} #{number_of_pages}"
 
   if year&.zero?
     unusable_dates['unusable_dates'] = add_unused_date(unusable_dates['unusable_dates'])
