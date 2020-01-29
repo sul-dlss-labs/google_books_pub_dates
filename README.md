@@ -3,7 +3,7 @@
 bundle install
 ```
 ## Run the Script
-E.g. using the sample record set:
+E.g. using the full record set:
 ```apple js
 ruby analyze_marc.rb marc/grin_all_barcodes.mrc
 ```
