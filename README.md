@@ -8,6 +8,11 @@ E.g. using the sample record set:
 ruby analyze_marc.rb sample_500.mrc
 ```
 
+## On Dates
+This script currently only captures dates from the 008, therefore some dates are skipped
+because they are not parsable as an integer year. The running total of these dates are reported
+as 'Unusable dates'.
+
 ## Viewing the Data
 Open the `output.csv` file using Excel or similar spreadsheet editor
 
