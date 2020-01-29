@@ -110,6 +110,6 @@ CSV.open('report/output.csv', 'w') do |csv|
   csv << printable_values
 end
 
-CSV.open('report/unusable.csv', 'w') do |csv|
+CSV.open('report/not_parsed.csv', 'w') do |csv|
   csv << ['Dates not parsed', unusable_dates['unusable_dates']]
 end
