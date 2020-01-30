@@ -18,7 +18,15 @@ unusable_dates = {
   'unusable_dates' => 0
 }
 
+unusable_pages = {
+  'unusable_pages' => 0
+}
+
 def add_unused_date(curr_count)
+  curr_count.to_i + 1
+end
+
+def add_unused_pages(curr_count)
   curr_count.to_i + 1
 end
 
@@ -71,7 +79,10 @@ reader.each do |record|
   pub = pub_record && record['300']['a'].to_s
 
   pages_or_leaves = /\d+ (p\.|leaves)/.match(pub).to_s
-  number_of_pages = /\d+/.match(pages_or_leaves)
+  pages = pages_or_leaves.to_s
+
+  unusable_pages['unusable_pages'] = add_unused_pages(unusable_pages['unusable_pages']) unless pages&.nil?
+  number_of_pages = /\d+/.match(pages)
 
   year = embargo_year(pub_date(record))
 
@@ -112,4 +123,5 @@ end
 
 CSV.open('report/not_parsed.csv', 'w') do |csv|
   csv << ['Dates not parsed', unusable_dates['unusable_dates']]
+  csv << ['Pages not parsed', unusable_pages['unusable_pages']]
 end
