@@ -1,26 +1,9 @@
 # frozen_string_literal: true
 
 require 'marc'
-require 'json'
+require 'yaml'
 require 'csv'
-
-reader = MARC::Reader.new(ARGV[0], external_encoding: 'UTF-8')
-
-report = {
-  '2020' => { 'items' => 0, 'pages' => 0 },
-  '2021' => { 'items' => 0, 'pages' => 0 },
-  '2022' => { 'items' => 0, 'pages' => 0 },
-  '2023' => { 'items' => 0, 'pages' => 0 },
-  '2024' => { 'items' => 0, 'pages' => 0 }
-}
-
-unusable_dates = {
-  'unusable_dates' => 0
-}
-
-unusable_pages = {
-  'unusable_pages' => 0
-}
+require 'yaml'
 
 def add_unused_date(curr_count)
   curr_count.to_i + 1
@@ -38,16 +21,16 @@ def add_items(curr_count)
   curr_count.to_i + 1
 end
 
+def add(curr_count)
+  curr_count.to_i + 1
+end
+
 def embargo_year(pub_date)
   year = pub_date.to_i
 
-  if year < 1000
-    return 0
-  end
+  return 0 if year < 1000
 
-  if year.between?(1000,1925)
-    return 2020
-  end
+  return 2020 if year.between?(1000, 1925)
 
   case year
   when 1926
@@ -74,54 +57,83 @@ def pub_date(record)
   end
 end
 
-reader.each do |record|
-  pub_record = record['300']
-  pub = pub_record && record['300']['a'].to_s
+ARGV.each do |arg|
+  puts "Processing #{arg}"
+  report = YAML.load_file('yaml/report.yml')
+  unusable_dates = YAML.load_file('yaml/unusable_dates.yml')
+  unusable_pages = YAML.load_file('yaml/unusable_pages.yml')
+  counter = YAML.load_file('yaml/counter.yml')
 
-  pages_or_leaves = /\d+ (p\.|leaves)/.match(pub).to_s
-  pages = pages_or_leaves.to_s
+  MARC::Reader.new(arg, external_encoding: 'UTF-8').each do |record|
+    counter[:count] = add(counter[:count])
 
-  unusable_pages['unusable_pages'] = add_unused_pages(unusable_pages['unusable_pages']) unless pages&.nil?
-  number_of_pages = /\d+/.match(pages)
+    pub_record = record['300']
+    pub = pub_record && record['300']['a'].to_s
 
-  year = embargo_year(pub_date(record))
+    pages_or_leaves = /\d+ (p\.|leaves)/.match(pub)
+    if pages_or_leaves.nil?
+      unusable_pages[:unusable_pages] = add_unused_pages(unusable_pages[:unusable_pages])
+    end
 
-  if year&.zero?
-    unusable_dates['unusable_dates'] = add_unused_date(unusable_dates['unusable_dates'])
-  elsif year # exclude anything published later than 1929..
-    report[year.to_s]['items'] = add_items(report[year.to_s]['items'])
-    report[year.to_s]['pages'] = add_pages(report[year.to_s]['pages'], number_of_pages.to_s)
+    pages = pages_or_leaves.to_s
+    number_of_pages = /\d+/.match(pages).to_s
+
+    year = embargo_year(pub_date(record))
+
+    if year&.zero?
+      unusable_dates[:unusable_dates] = add_unused_date(unusable_dates[:unusable_dates])
+    elsif year # exclude anything published later than 1929..
+      report[:years][year][:items] = add_items(report[:years][year][:items])
+      report[:years][year][:pages] = add_pages(report[:years][year][:pages], number_of_pages)
+    end
   end
+
+  File.open('yaml/report.yml', 'w') { |f| f.write(report.to_yaml) }
+  File.open('yaml/unusable_dates.yml', 'w') { |f| f.write(unusable_dates.to_yaml) }
+  File.open('yaml/unusable_pages.yml', 'w') { |f| f.write(unusable_pages.to_yaml) }
+  File.open('yaml/counter.yml', 'w') { |f| f.write(counter.to_yaml) }
+
+  puts "Processed: #{counter[:count]}"
+  puts "Unused dates: #{unusable_dates[:unusable_dates]}"
+  puts "Unused pages: #{unusable_pages[:unusable_pages]}"
+  puts report
 end
 
-puts report
-
 CSV.open('report/output.csv', 'w') do |csv|
+  report = YAML.load_file('yaml/report.yml')
+
   header = []
   header << ''
-  report.keys.each do |report_year|
+  report[:years].keys.each do |report_year|
     header << report_year
   end
   csv << header
 
   printable_values = []
   printable_values << 'Items'
-  report.keys.each do |report_year|
-    printable_values << report[report_year.to_s]['items']
+  report[:years].each do |year, v|
+    printable_values << report[:years][year][:items]
   end
 
   csv << printable_values
 
   printable_values = []
   printable_values << 'Pages'
-  report.keys.each do |report_year|
-    printable_values << report[report_year.to_s]['pages']
+  report[:years].each do |year, v|
+    printable_values << report[:years][year][:pages]
   end
 
   csv << printable_values
 end
 
 CSV.open('report/not_parsed.csv', 'w') do |csv|
-  csv << ['Dates not parsed', unusable_dates['unusable_dates']]
-  csv << ['Pages not parsed', unusable_pages['unusable_pages']]
+  unusable_dates = YAML.load_file('yaml/unusable_dates.yml')
+  unusable_pages = YAML.load_file('yaml/unusable_pages.yml')
+  counter = YAML.load_file('yaml/counter.yml')
+
+  csv << ['Items processed', counter[:count]]
+  csv << ['Dates not parsed', unusable_dates[:unusable_dates]]
+  csv << ['Pages not parsed', unusable_pages[:unusable_pages]]
 end
+
+system('ruby new_yaml.rb')
