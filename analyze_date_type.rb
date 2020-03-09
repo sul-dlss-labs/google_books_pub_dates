@@ -18,10 +18,11 @@ ARGV.each do |arg|
     next unless %w[d t u].include? pub_type(record)
 
     ckey = record['001'].to_s[5]
-    barcode = system("echo #{ckey} | /s/sirsi/Unicorn/Bin/selitem -iC -oB 2>/dev/null")
     copyright = public_domain_year(record['008'].to_s[15..18])
+    barcodes = `echo #{ckey} | /s/sirsi/Unicorn/Bin/selitem -iC -oB 2>/dev/null`.split('|')
+    barcodes = barcodes.collect{|b| b.strip || b }
 
-    barcode.each do |bc|
+    barcodes.each do |bc|
       puts "#{copyright}, #{bc}"
     end
   end
