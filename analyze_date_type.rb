@@ -20,7 +20,8 @@ ARGV.each do |arg|
     ckey = record['001'].to_s[5]
     copyright = public_domain_year(record['008'].to_s[15..18])
     barcodes = `echo #{ckey} | /s/sirsi/Unicorn/Bin/selitem -iC -oB 2>/dev/null`.split('|')
-    barcodes = barcodes.collect{|b| b.strip || b }
+    barcodes = barcodes.reject(&:empty?)
+    barcodes = barcodes.collect { |b| b.strip || b }
 
     barcodes.each do |bc|
       puts "#{copyright}, #{bc}"
