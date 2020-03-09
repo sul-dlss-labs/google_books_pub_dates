@@ -8,7 +8,7 @@ end
 
 def public_domain_year(pub_date)
   year = pub_date.to_i
-  return 'Out or copyright' if year.between?(1000, 1925)
+  return 'Out of copyright' if year.between?(1000, 1925)
   return 'Out of copyright in 5 years' if year.between?(1926, 1929)
   return 'In copyright' if year < 1000 || year > 1929
 end
