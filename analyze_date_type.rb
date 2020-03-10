@@ -17,7 +17,7 @@ ARGV.each do |arg|
   MARC::Reader.new(arg, external_encoding: 'UTF-8').each do |record|
     next unless %w[d t u].include? pub_type(record)
 
-    ckey = record['001'].to_s[5]
+    ckey = record['001'].to_s[5..-1]
     copyright = public_domain_year(record['008'].to_s[15..18])
     system_bcs = `echo #{ckey} | /s/sirsi/Unicorn/Bin/selitem -iC -oB 2>/dev/null`.split('|')
     bc_array = system_bcs.collect { |b| b.strip || b }
